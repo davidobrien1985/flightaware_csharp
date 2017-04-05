@@ -1,0 +1,41 @@
+{
+  "disabled": false,
+  "scriptFile": "..\\bin\\slackbot_flightinfo_csharp.dll",
+  "entryPoint": "slackbot_flightinfo_csharp.FlightawareSlackbot.Run",
+  "bindings": [
+    {
+      "authLevel": "function",
+      "name": "req",
+      "type": "httpTrigger",
+      "direction": "in"
+    },
+    {
+      "name": "weatherQueue",
+      "queueName": "weatherQueue",
+      "connection": "AzureWebJobsStorage",
+      "type": "queue",
+      "direction": "out"
+    },
+    {
+      "name": "flightStatusQueue",
+      "queueName": "flightStatusQueue",
+      "connection": "AzureWebJobsStorage",
+      "type": "queue",
+      "direction": "out"
+    },
+    {
+      "type": "documentDB",
+      "name": "outputDocument",
+      "databaseName": "flightawareDB",
+      "collectionName": "flightawareDB",
+      "createIfNotExists": true,
+      "connection": "flightaware_DocumentDB",
+      "direction": "out"
+    },
+    {
+      "name": "$return",
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

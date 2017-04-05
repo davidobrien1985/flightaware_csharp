@@ -1,0 +1,19 @@
+﻿{
+  "disabled": false,
+  "scriptFile": "..\\bin\\slackbot_flightinfo_csharp.dll",
+  "entryPoint": "slackbot_flightinfo_csharp.GetFlightStatus.Run",
+  "bindings": [
+    {
+      "name": "flightStatusQueue",
+      "queueName": "flightStatusQueue",
+      "connection": "AzureWebJobsStorage",
+      "type": "queueTrigger",
+      "direction": "in"
+    },
+    {
+      "name": "$return",
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}

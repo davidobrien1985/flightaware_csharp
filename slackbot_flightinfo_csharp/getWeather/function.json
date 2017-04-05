@@ -1,0 +1,19 @@
+﻿{
+  "disabled": false,
+  "scriptFile": "..\\bin\\slackbot_flightinfo_csharp.dll",
+  "entryPoint": "slackbot_flightinfo_csharp.GetWeather.Run",
+  "bindings": [
+    {
+      "name": "weatherQueue",
+      "queueName": "weatherQueue",
+      "connection": "AzureWebJobsStorage",
+      "type": "queueTrigger",
+      "direction": "in"
+    },
+    {
+      "name": "$return",
+      "type": "http",
+      "direction": "out"
+    }
+  ]
+}
