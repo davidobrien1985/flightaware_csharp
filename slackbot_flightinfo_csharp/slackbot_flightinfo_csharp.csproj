@@ -102,15 +102,6 @@
     <Content Include=".gitignore" />
     <Content Include="getWeather\function.json" />
     <Content Include="getFlightStatus\function.json" />
-    <None Include="Web.Debug.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </None>
-    <None Include="Web.Release.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="flightaware_slackbot.cs" />
