@@ -292,8 +292,8 @@ namespace slackbot_flightinfo_csharp
                     $"To = {destination} / {flightInfo[0].SelectToken("destinationName").Value<string>()} \n" +
                     $"Type of Aircraft = {typeOfAircraft} \n" +
                     $"Filed Departure time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>())} \n" +
-                    $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
                     $"Estimated Departure time = {estimatedDepartureTime} \n" +
+                    $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
                     $"Current delay = {delay} \n" +
                     $"Estimated Flight time = {estimatedTimeEnroute} \n"
                 };
