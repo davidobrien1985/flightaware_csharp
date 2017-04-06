@@ -24,4 +24,3 @@ project.lock.json
 appsettings.json
 Web.Debug.config
 Web.Release.config
-Web.config

@@ -272,6 +272,15 @@ namespace slackbot_flightinfo_csharp
                 string destination = flight.SelectToken("destination").Value<string>();
                 string typeOfAircraft = flight.SelectToken("aircrafttype").Value<string>();
 
+                DateTime filedDepartureTime = GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>());
+                DateTime estimatedArrivalTime =
+                    GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>());
+                string estimatedTimeEnroute = flightInfo[0].SelectToken("filed_ete").Value<string>();
+                TimeSpan estimatedTimeEnrouteTimeSpan = TimeSpan.Parse(estimatedTimeEnroute);
+
+                DateTime estimatedDepartureTime = estimatedArrivalTime.Add(-estimatedTimeEnrouteTimeSpan);
+                TimeSpan delay = estimatedDepartureTime - filedDepartureTime;
+
                 var slackResponseUri = HttpUtility.UrlDecode(flightStatusQueue.Response_Url);
                 //{GenericHelper.ConvertFromUtcToLocal(GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>()))}" 
                 // if you haven't set your Azure Web App time zone
@@ -284,7 +293,9 @@ namespace slackbot_flightinfo_csharp
                     $"Type of Aircraft = {typeOfAircraft} \n" +
                     $"Filed Departure time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>())} \n" +
                     $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
-                    $""
+                    $"Estimated Departure time = {estimatedDepartureTime} \n" +
+                    $"Current delay = {delay} \n" +
+                    $"Estimated Flight time = {estimatedTimeEnroute} \n"
                 };
 
                 GenericHelper.SendMessageToSlack(slackResponseUri, jsonPayload);
