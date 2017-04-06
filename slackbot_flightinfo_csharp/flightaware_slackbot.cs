@@ -258,7 +258,6 @@ namespace slackbot_flightinfo_csharp
             foreach (JToken flight in actualFlights)
             {
 
-
                 string flightident =
                     $"{icaoCode}{flightno}@{flight.SelectToken("departuretime").Value<string>()}";
                 var uriFlightInfoEx =
@@ -289,6 +288,7 @@ namespace slackbot_flightinfo_csharp
                 };
 
                 GenericHelper.SendMessageToSlack(slackResponseUri, jsonPayload);
+                log.Info(jsonPayload.ToString());
             }
         }
     }
