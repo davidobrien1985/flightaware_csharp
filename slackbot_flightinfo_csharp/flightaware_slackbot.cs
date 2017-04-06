@@ -218,8 +218,8 @@ namespace slackbot_flightinfo_csharp
             HttpClient client = new HttpClient();
             var values = new Dictionary<string, string>
             {
-                { "status", "Y" },
-                { "iataairl", airlineIata }
+                {"status", "Y"},
+                {"iataairl", airlineIata}
             };
 
             var content = new FormUrlEncodedContent(values);
@@ -234,14 +234,14 @@ namespace slackbot_flightinfo_csharp
 
             var regex = new Regex(@"ICAO Code:<br />&nbsp;\D{3}");
             var matches = regex.Matches(result);
-            
-            string icaoCode = $"{(matches[0].Value).Split(';')[1].Substring(0,3)}";
+
+            string icaoCode = $"{(matches[0].Value).Split(';')[1].Substring(0, 3)}";
             log.Info(icaoCode);
 
             // get the flight number from the input string
             string flightno = flightNumber.Substring(2);
-            Int32 today = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
-            Int32 tomorrow = (Int32)(DateTime.UtcNow.AddDays(1).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            Int32 today = (Int32) (DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+            Int32 tomorrow = (Int32) (DateTime.UtcNow.AddDays(1).Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
             var uriAirlineFlightSchedules =
                 $"https://flightxml.flightaware.com/json/FlightXML2/AirlineFlightSchedules?startDate={today}&endDate={tomorrow}&airline={icaoCode}&flightno={flightno}";
@@ -250,38 +250,46 @@ namespace slackbot_flightinfo_csharp
 
             log.Info(airlineFlightSchedules);
             JObject jsonAirlineFlightSchedules = JObject.Parse(airlineFlightSchedules);
-            JArray airlineFlightSchedulesResults = jsonAirlineFlightSchedules["AirlineFlightSchedulesResult"].SelectToken("data").Value<JArray>();
-            JObject actualFlight = Flights.FilterFlights(airlineFlightSchedulesResults, $"{icaoCode}{flightno}");
+            JArray airlineFlightSchedulesResults = jsonAirlineFlightSchedules["AirlineFlightSchedulesResult"]
+                .SelectToken("data")
+                .Value<JArray>();
+            JArray actualFlights = Flights.FilterFlights(airlineFlightSchedulesResults, $"{icaoCode}{flightno}");
 
-            string flightident = $"{icaoCode}{flightno}@{actualFlight.SelectToken("departuretime").Value<string>()}";
-            var uriFlightInfoEx =
-                $"https://flightxml.flightaware.com/json/FlightXML2/FlightInfoEx?ident={flightident}&howMany=2";
-            string flightInfoExs = await GenericHelper.FlightAwareGet(uriFlightInfoEx);
-
-            JObject jsonFlightInfoEx = JObject.Parse(flightInfoExs);
-            JArray flightInfo = jsonFlightInfoEx["FlightInfoExResult"].SelectToken("flights").Value<JArray>();
-            
-            string flightIdent = actualFlight.SelectToken("ident").Value<string>();
-            string origin = actualFlight.SelectToken("origin").Value<string>();
-            string destination = actualFlight.SelectToken("destination").Value<string>();
-            string typeOfAircraft = actualFlight.SelectToken("aircrafttype").Value<string>();
-
-            var slackResponseUri = HttpUtility.UrlDecode(flightStatusQueue.Response_Url);
-            //{GenericHelper.ConvertFromUtcToLocal(GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>()))}" 
-            // if you haven't set your Azure Web App time zone
-            var jsonPayload = new
+            foreach (JToken flight in actualFlights)
             {
-                text =
-                $"*{flightStatusQueue.User_Name} here is your flight info for Flight # {icaoCode}{flightno} / {flightIdent}* \n" +
-                $"From = {origin} / {flightInfo[0].SelectToken("originName").Value<string>()}\n" +
-                $"To = {destination} / {flightInfo[0].SelectToken("destinationName").Value<string>()} \n" +
-                $"Type of Aircraft = {typeOfAircraft} \n" +
-                $"Filed Departure time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>())} \n" +
-                $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
-                $""
-            };
 
-            GenericHelper.SendMessageToSlack(slackResponseUri, jsonPayload);
+
+                string flightident =
+                    $"{icaoCode}{flightno}@{flight.SelectToken("departuretime").Value<string>()}";
+                var uriFlightInfoEx =
+                    $"https://flightxml.flightaware.com/json/FlightXML2/FlightInfoEx?ident={flightident}&howMany=2";
+                string flightInfoExs = await GenericHelper.FlightAwareGet(uriFlightInfoEx);
+
+                JObject jsonFlightInfoEx = JObject.Parse(flightInfoExs);
+                JArray flightInfo = jsonFlightInfoEx["FlightInfoExResult"].SelectToken("flights").Value<JArray>();
+
+                string flightIdent = flight.SelectToken("ident").Value<string>();
+                string origin = flight.SelectToken("origin").Value<string>();
+                string destination = flight.SelectToken("destination").Value<string>();
+                string typeOfAircraft = flight.SelectToken("aircrafttype").Value<string>();
+
+                var slackResponseUri = HttpUtility.UrlDecode(flightStatusQueue.Response_Url);
+                //{GenericHelper.ConvertFromUtcToLocal(GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>()))}" 
+                // if you haven't set your Azure Web App time zone
+                var jsonPayload = new
+                {
+                    text =
+                    $"*{flightStatusQueue.User_Name} here is your flight info for Flight # {icaoCode}{flightno} / {flightIdent}* \n" +
+                    $"From = {origin} / {flightInfo[0].SelectToken("originName").Value<string>()}\n" +
+                    $"To = {destination} / {flightInfo[0].SelectToken("destinationName").Value<string>()} \n" +
+                    $"Type of Aircraft = {typeOfAircraft} \n" +
+                    $"Filed Departure time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>())} \n" +
+                    $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
+                    $""
+                };
+
+                GenericHelper.SendMessageToSlack(slackResponseUri, jsonPayload);
+            }
         }
     }
 }
