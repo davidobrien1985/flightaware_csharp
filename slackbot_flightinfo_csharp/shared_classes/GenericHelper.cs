@@ -5,10 +5,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace slackbot_flightinfo_csharp.shared_classes
 {
-    public class GenericHelper
+    public static class GenericHelper
     {
         public static string GetEnvironmentVariable(string name)
         {
@@ -53,6 +54,15 @@ namespace slackbot_flightinfo_csharp.shared_classes
             TimeZoneInfo aestZone = TimeZoneInfo.FindSystemTimeZoneById("AUS Eastern Standard Time");
             DateTime aestTime = TimeZoneInfo.ConvertTimeFromUtc(utc, aestZone);
             return aestTime;
+        }
+
+        public static bool IsNullOrEmpty(this JToken token)
+        {
+            return (token == null) ||
+                    (token.Type == JTokenType.Array && !token.HasValues) ||
+                    (token.Type == JTokenType.Object && !token.HasValues) ||
+                    (token.Type == JTokenType.String && token.ToString() == String.Empty) ||
+                    (token.Type == JTokenType.Null);
         }
     }
 }

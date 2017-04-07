@@ -266,11 +266,27 @@ namespace slackbot_flightinfo_csharp
 
                 JObject jsonFlightInfoEx = JObject.Parse(flightInfoExs);
                 JArray flightInfo = jsonFlightInfoEx["FlightInfoExResult"].SelectToken("flights").Value<JArray>();
-
+                string faFlightId = flightInfo[0].SelectToken("faFlightID").Value<string>();
                 string flightIdent = flight.SelectToken("ident").Value<string>();
                 string origin = flight.SelectToken("origin").Value<string>();
                 string destination = flight.SelectToken("destination").Value<string>();
                 string typeOfAircraft = flight.SelectToken("aircrafttype").Value<string>();
+                string route = null;
+                ;
+                if (flight.SelectToken("route").IsNullOrEmpty())
+                {
+                    route = "Route not provided";
+                }
+                else
+                {
+                    route = flight.SelectToken("route").Value<string>();
+                }
+
+                var uriAirlineFlightInfo =
+                    $"https://flightxml.flightaware.com/json/FlightXML2/AirlineFlightInfo?faFlightID={faFlightId}";
+                string airlineFlightInfo = await GenericHelper.FlightAwareGet(uriAirlineFlightInfo);
+                JObject jsonAirlineFlightInfo = JObject.Parse(airlineFlightInfo);
+                JObject arrAirlineFlightInfo = jsonAirlineFlightInfo["AirlineFlightInfoResult"].Value<JObject>();
 
                 DateTime filedDepartureTime = GenericHelper.FromUnixTime(flightInfo[0].SelectToken("filed_departuretime").Value<long>());
                 DateTime estimatedArrivalTime =
@@ -295,7 +311,10 @@ namespace slackbot_flightinfo_csharp
                     $"Estimated Departure time = {estimatedDepartureTime} \n" +
                     $"Estimated Arrival time = {GenericHelper.FromUnixTime(flightInfo[0].SelectToken("estimatedarrivaltime").Value<long>())} \n" +
                     $"Current delay = {delay} \n" +
-                    $"Estimated Flight time = {estimatedTimeEnroute} \n"
+                    $"Estimated Flight time = {estimatedTimeEnroute} \n" +
+                    $"Filed route = {route} \n" +
+                    $"Departure Terminal = {arrAirlineFlightInfo.SelectToken("terminal_orig").Value<string>()} \n" +
+                    $"Departure Gate = {arrAirlineFlightInfo.SelectToken("gate_orig").Value<string>()} "
                 };
 
                 GenericHelper.SendMessageToSlack(slackResponseUri, jsonPayload);
